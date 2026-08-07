@@ -1,0 +1,4 @@
+profile_code,marketplace,category_code,variable_fee_rate,international_fee_rate,fixed_fee_currency,fixed_fee_amount,ad_rate,return_reserve_rate,effective_from,effective_to
+SAMPLE_EBAY_US_DEFAULT,EBAY_US,,0.136,0.0135,USD,0.40,0.020,0.030,2026-08-01,
+SAMPLE_EBAY_GB_DEFAULT,EBAY_GB,,0.128,0.0200,GBP,0.30,0.020,0.030,2026-08-01,
+SAMPLE_EBAY_CA_DEFAULT,EBAY_CA,,0.132,0.0150,CAD,0.40,0.020,0.030,2026-08-01,

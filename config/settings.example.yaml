@@ -1,0 +1,19 @@
+scenario_multipliers:
+  optimistic:
+    sale_price_multiplier: "1.05"
+    exchange_rate_multiplier: "1.02"
+    shipping_multiplier: "0.95"
+    ad_rate_multiplier: "0.70"
+    return_rate_multiplier: "0.70"
+  base:
+    sale_price_multiplier: "1.00"
+    exchange_rate_multiplier: "1.00"
+    shipping_multiplier: "1.00"
+    ad_rate_multiplier: "1.00"
+    return_rate_multiplier: "1.00"
+  conservative:
+    sale_price_multiplier: "0.92"
+    exchange_rate_multiplier: "0.97"
+    shipping_multiplier: "1.10"
+    ad_rate_multiplier: "1.30"
+    return_rate_multiplier: "1.50"

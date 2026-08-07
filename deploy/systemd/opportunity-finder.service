@@ -1,0 +1,26 @@
+# Deployment placeholders: update User, Group, paths, and the uv location for
+# the production host before installing this unit in /etc/systemd/system/.
+[Unit]
+Description=Japan eBay Opportunity Finder Daily Job
+After=network-online.target mysql.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=opportunity
+Group=opportunity
+WorkingDirectory=/opt/opportunity-finder
+EnvironmentFile=/opt/opportunity-finder/.env
+ExecStart=/usr/local/bin/uv run finder daily --stale-only --export-dir /opt/opportunity-finder/output/daily
+TimeoutStartSec=1800
+Nice=10
+
+# Sandboxing. Keep only application data, exports, and logs writable.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/opt/opportunity-finder/data /opt/opportunity-finder/output /opt/opportunity-finder/logs
+
+[Install]
+WantedBy=multi-user.target

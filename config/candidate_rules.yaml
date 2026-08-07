@@ -1,0 +1,10 @@
+candidate_rules:
+  minimum_base_profit_jpy: 3000
+  minimum_base_margin: "0.25"
+  minimum_conservative_profit_jpy: 1000
+  minimum_sold_90d: 5
+  minimum_sell_through_rate: "0.15"
+  maximum_packed_weight_g: 1000
+  maximum_source_data_age_days: 7
+  maximum_market_data_age_days: 90
+  minimum_confidence_score: 60

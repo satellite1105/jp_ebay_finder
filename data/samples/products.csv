@@ -1,0 +1,4 @@
+external_key,jan,title,brand,model_number,condition,source_cost_jpy,source_shipping_jpy,weight_g,packed_weight_g,origin_country,supplier_name,supplier_url,checked_at
+sample-high-profit-001,4901234567894,Premium Japanese Fountain Pen,Sakura Works,SW-FP100,new,2500,300,400,470,JP,Tokyo Stationery,https://example.invalid/products/sw-fp100,2026-08-08T09:00:00+09:00
+sample-low-profit-002,4901234567887,Japanese Desk Organizer,Hinode Craft,HC-DO200,new,8000,500,750,900,JP,Hinode Direct,https://example.invalid/products/hc-do200,2026-08-08T09:05:00+09:00
+sample-blocked-003,4901234567870,Lithium Battery Camera Power Pack,Kaminari Tech,KT-LB300,new,1000,200,300,360,JP,Kaminari Outlet,https://example.invalid/products/kt-lb300,2026-08-08T09:10:00+09:00

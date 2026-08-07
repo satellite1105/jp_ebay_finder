@@ -1,0 +1,14 @@
+# サンプル値です。利用前に現行規約を確認し、出品者アカウント、マーケットプレイス、
+# カテゴリ、適用日に対応する実際の値を入力すること。
+fee_profiles:
+  - profile_code: EBAY_US_DEFAULT_SAMPLE
+    marketplace: EBAY_US
+    category_code: null
+    variable_fee_rate: "0.1325"
+    international_fee_rate: "0.0155"
+    fixed_fee_currency: USD
+    fixed_fee_amount: "0.40"
+    ad_rate: "0.0200"
+    return_reserve_rate: "0.0300"
+    effective_from: "2026-01-01"
+    effective_to: null

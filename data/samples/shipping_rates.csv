@@ -1,0 +1,4 @@
+profile_code,destination_country,min_weight_g,max_weight_g,service_name,shipping_jpy,tracking,included_insurance_jpy,effective_from,effective_to
+SAMPLE_US_SMALL,US,0,500,Tracked Economy Small,1600,true,0,2026-08-01,
+SAMPLE_US_MEDIUM,US,501,1000,Tracked Economy Medium,2200,true,0,2026-08-01,
+SAMPLE_US_LARGE,US,1001,2000,Tracked Economy Large,3600,true,0,2026-08-01,

@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Opportunity Finder every day
+
+[Timer]
+OnCalendar=*-*-* 06:30:00 Asia/Tokyo
+RandomizedDelaySec=300
+Persistent=true
+Unit=opportunity-finder.service
+
+[Install]
+WantedBy=timers.target

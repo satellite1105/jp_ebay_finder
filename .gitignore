@@ -1,0 +1,39 @@
+# Byte-compiled files and Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Build and packaging output
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Test, coverage, lint, and type-check caches
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.ruff_cache/
+.mypy_cache/
+
+# Local environment and editor files
+.env
+.env.*
+!.env.example
+.DS_Store
+.idea/
+.vscode/
+
+# Runtime imports (sample files live under data/samples and remain tracked)
+data/imports/*
+!data/imports/.gitkeep
+!data/imports/sample*
+!data/imports/*.sample.*
+!data/imports/samples/
+!data/imports/samples/**

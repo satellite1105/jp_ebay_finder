@@ -1,0 +1,4 @@
+external_key,search_query,marketplace,condition,lookback_days,sold_count,active_count,median_sold_price_usd,average_sold_price_usd,median_buyer_shipping_usd,sell_through_rate,checked_at,notes
+sample-high-profit-001,Sakura Works SW-FP100,EBAY_US,new,90,24,36,100.00,98.50,0.00,0.40,2026-08-08T09:30:00+09:00,Manual Product Research sample
+sample-low-profit-002,Hinode Craft HC-DO200,EBAY_US,new,90,14,40,50.00,49.25,0.00,0.25,2026-08-08T09:35:00+09:00,Low-profit control sample
+sample-blocked-003,Kaminari Tech KT-LB300,EBAY_US,new,90,30,35,120.00,118.00,0.00,0.55,2026-08-08T09:40:00+09:00,Hazardous lithium battery compliance block sample

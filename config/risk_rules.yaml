@@ -1,0 +1,15 @@
+risk_rules:
+  # Jurisdiction- and carrier-specific prohibited items must be maintained manually.
+  prohibited_categories: []
+  manual_review_categories:
+    - food
+    - cosmetics
+    - pharmaceuticals
+    - hazardous_materials
+  blocked_compliance_statuses:
+    - blocked
+  review_compliance_statuses:
+    - review
+    - needs_review
+  require_manual_authenticity_review: true
+  require_manual_hs_code_confirmation: true
