@@ -68,6 +68,7 @@ def export_opportunities_csv(
     ``sanitize_formula_cell`` immediately before it reaches the CSV writer.
     """
     output_path = Path(path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w", encoding="utf-8", newline="") as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(_sanitize_cell(column) for column in OPPORTUNITY_COLUMNS)

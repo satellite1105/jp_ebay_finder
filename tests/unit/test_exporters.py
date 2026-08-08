@@ -83,6 +83,17 @@ def test_opportunities_csv_cost_components_sum_to_total_cost(tmp_path) -> None:
     assert component_total == Decimal(row["total_cost_jpy"])
 
 
+def test_opportunities_csv_creates_missing_parent_directories(tmp_path) -> None:
+    output_path = tmp_path / "does" / "not" / "exist" / "opportunities.csv"
+
+    export_opportunities_csv([opportunity_record()], output_path)
+
+    assert output_path.exists()
+    with output_path.open(encoding="utf-8", newline="") as csv_file:
+        rows = list(csv.DictReader(csv_file))
+    assert len(rows) == 1
+
+
 def test_audit_jsonl_writes_one_valid_json_object_per_line(tmp_path) -> None:
     output_path = tmp_path / "audit.jsonl"
     records = [
@@ -121,3 +132,27 @@ def test_audit_jsonl_writes_one_valid_json_object_per_line(tmp_path) -> None:
     assert decoded[0]["after_value"] == {"cost": "1234.5000"}
     assert decoded[0]["created_at"] == "2026-08-08T03:04:05.678901+00:00"
     assert decoded[1]["after_value"]["decision"] == "BUY_TEST_1"
+
+
+def test_audit_jsonl_creates_missing_parent_directories(tmp_path) -> None:
+    output_path = tmp_path / "does" / "not" / "exist" / "audit.jsonl"
+    records = [
+        {
+            "id": 1,
+            "run_id": None,
+            "entity_type": "product",
+            "entity_id": 42,
+            "action": "created",
+            "actor": "system",
+            "before_value": None,
+            "after_value": None,
+            "reason": None,
+            "created_at": datetime(2026, 8, 8, 3, 4, 5, tzinfo=UTC),
+        },
+    ]
+
+    export_audit_jsonl(records, output_path)
+
+    assert output_path.exists()
+    lines = output_path.read_text(encoding="utf-8").splitlines()
+    assert len(lines) == 1

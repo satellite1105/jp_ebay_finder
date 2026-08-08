@@ -26,6 +26,7 @@ AUDIT_COLUMNS = (
 def export_audit_jsonl(records: Iterable[Mapping[str, Any] | object], path: str | Path) -> None:
     """Write each audit record as exactly one valid JSON object per line."""
     output_path = Path(path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w", encoding="utf-8", newline="\n") as jsonl_file:
         for record in records:
             payload = {column: _record_value(record, column) for column in AUDIT_COLUMNS}
