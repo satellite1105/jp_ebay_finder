@@ -7,6 +7,7 @@
 - 要件定義: [`docs/spec.md`](docs/spec.md)
 - 技術設計: [`docs/design.md`](docs/design.md)
 - タスク分割・実装進捗: [`docs/tasks.md`](docs/tasks.md)
+- 実運用前検証(Phase 5): [`docs/operational_validation.md`](docs/operational_validation.md)
 - 実行状態(進捗・課題・再開手順): [`PROJECT_STATE.md`](PROJECT_STATE.md)
 - 元となった企画資料一式: [`ALL_IN_ONE_SPEC.md`](ALL_IN_ONE_SPEC.md), [`docs/00_PROJECT_BRIEF.md`](docs/00_PROJECT_BRIEF.md) 〜 [`docs/06_CLAUDE_CODE_EXECUTION_PROMPT.md`](docs/06_CLAUDE_CODE_EXECUTION_PROMPT.md)
 
@@ -157,9 +158,10 @@ CIでは `.github/workflows/ci.yml` のMySQLサービスコンテナを使用し
 
 ## 開発状況・既知の課題
 
-2026-08-08時点、Phase 0〜Phase 4(基盤・オフラインMVP・国内API連携・eBay Browse API連携・運用)の実装(`docs/tasks.md` T01〜T41、MVP必須範囲すべて)が完了しています。全体テストスイート(`uv run pytest -q` 255 passed)、`ruff check .`、`ruff format --check .` はいずれも通過し、reviewerによる検証(total_score 0.97、合格基準0.85を上回る)も完了しています。詳細な進捗・実行者記録・reviewer結果は [`PROJECT_STATE.md`](PROJECT_STATE.md) を参照してください。
+2026-08-08時点、Phase 0〜Phase 6(基盤・オフラインMVP・国内API連携・eBay Browse API連携・運用・納品)の実装(`docs/tasks.md` T01〜T41、MVP必須範囲すべて)が完了しています。2026-08-09には、MVPの利益計算・判定ロジックを実仕入判断に使える信頼度があるかを検証するPhase 5(実運用前検証)を実施しました。decision taxonomy(10値)自体への変更は行っておらず、既存仕様どおりです。全体テストスイート(`uv run pytest -q`)、`ruff check .`、`ruff format --check .` はいずれも通過しています。テスト件数はプロジェクトの進行に応じて増減するため、最新件数は `uv run pytest -q` の実行結果を確認してください。reviewerによる検証(MVP完了時 total_score 0.97、Phase 5完了時の結果は [`PROJECT_STATE.md`](PROJECT_STATE.md) を参照)。詳細な進捗・実行者記録は [`PROJECT_STATE.md`](PROJECT_STATE.md)、実運用前検証の詳細は [`docs/operational_validation.md`](docs/operational_validation.md) を参照してください。
 
-- **未実施**: フェーズ6(最終納品報告)。
+- **実運用前に必ず確認**: 現在このツールを実仕入判断にそのまま使うことは推奨しません。`config/fee_profiles.example.yaml` 等のサンプル手数料率、`data/samples/shipping_rates.csv` のサンプル送料(実際の日本郵便EMS公式料金と比較して大幅に低い)は、実際の契約条件・配送方法の実料金に置き換える必要があります。詳細は [`docs/operational_validation.md`](docs/operational_validation.md) を参照してください。
+- **未解決の設計課題**: `config/candidate_rules.yaml`の`maximum_packed_weight_g`は判定ロジックに未接続です(設定値は存在するが超過時の挙動が一次仕様に定義されていない)。詳細は [`docs/operational_validation.md`](docs/operational_validation.md) を参照してください。
 - **任意機能**: Streamlit管理画面(`docs/tasks.md` T42)はMVP必須要件ではないため未実装です。
-- **開発環境上の制約(記録)**: 開発に使用したCodexサブエージェントの実行サンドボックスからはローカルMySQL(`127.0.0.1:3306`)へのソケット接続が許可されておらず、DB統合テストの最終実行はリーダー(このリポジトリのオーケストレーター)側で代行しました。実装・テストコード自体はCodexが作成しています。本番運用・CI環境ではこの制約はなく、通常どおり `uv run pytest` がDB統合テストを含めて実行できます。
+- **開発環境上の制約(記録)**: 開発に使用したCodexサブエージェントの実行サンドボックスからはローカルMySQL(`127.0.0.1:3306`)へのソケット接続が許可されておらず、DB統合テストの最終実行はリーダー(このリポジトリのオーケストレーター)側で代行しました。本番運用・CI環境ではこの制約はなく、通常どおり `uv run pytest` がDB統合テストを含めて実行できます。
 - **手数料・送料・為替のサンプル値**: `config/fee_profiles.example.yaml` 等のサンプル値は実装時点の目安であり、実運用前に各プラットフォームの最新の規約・料率を確認して置き換えてください(`docs/spec.md`「禁止事項」参照)。

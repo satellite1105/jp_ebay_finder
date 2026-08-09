@@ -3,7 +3,7 @@
 ## メタデータ
 - project: jp_ebay_finder
 - status: completed
-- last_updated: 2026-08-08T12:00:00+09:00
+- last_updated: 2026-08-09T00:00:00+09:00
 
 ## goal(ユーザーの指示原文 — 書き換え禁止)
 projects/jp_ebay_finder の開発を開始してください。
@@ -124,3 +124,71 @@ T42(Streamlit)はnice-to-haveのためMVP完了後に任意実施。
 2. 各タスクへのCodex委譲は「Codex連携の共通ルール」(autodevスキル本体)に従う: 作業範囲・担当ファイル・依存ドキュメント該当箇所・テスト方法・完了報告フォーマット(coder.md/debugger.md準拠)を必ず含め、プロンプト冒頭に `--fresh --write --wait` を付与する。
 3. Codex circuit breaker(フェーズ3)は現在0(未発動)。「Executor status」に記録済みの発動有無を踏まえて継続する。
 4. 中断が技術的失敗によるものだった場合は「発生した問題と対応」に記録し、Codex/Claudeどちらで再開すべきか判断する。今回のような誤認による中断だった場合は、その旨をここに明記したうえで通常どおり再開する。
+
+---
+
+## Phase 5: 実運用前検証(Operational Validation & Decision Trust)— 2026-08-09
+
+**注意**: 上記「goal(ユーザーの指示原文)」は書き換えていない。以下はPhase 5として新たに追加した目的・記録である。
+
+### Phase 5の目的(ユーザー指示より、新規追記)
+
+「jp_ebay_finderが出力する上位仕入候補について、利益額・利益率・需要・商品matching・condition・データ鮮度等を含め、人間が実際の仕入判断に利用できる程度の信頼性があるかを検証する。問題が確認された場合だけ、原因に対応する最小限の改善を行い、再検証する。」新機能の無条件追加はスコープ外。
+
+### 実施したフェーズと成果物
+
+- Phase 5A(読み取り専用監査): 完了。利益計算式・opportunity score・decision優先順位・matching・compliance・freshness・confidence・shipping/fee/為替の入力元・Product Research vs eBay Browseの分離、を実装コードから直接確認し、値の分類表(コード固定/config/CSV入力/外部API由来)を作成。成果物: [`docs/operational_validation.md`](docs/operational_validation.md) 1〜11節。
+- Phase 5B(外部前提調査、research-loop方式): 完了。eBay標準FVF・International Fee・Promoted Listings・為替運用・日本郵便EMS・返品率・関税を一次情報優先で調査し、verified / configurable assumption / user-business-specific / unverifiable as universal constantに分類。fact-checker相当の独立検証(overall_reliability 0.92)を実施。成果物: [`outputs/research_notes.md`](outputs/research_notes.md)、レポート12節。
+- Phase 5C(config差分評価): 完了。手数料率・送料・シナリオ乗数・判定閾値をPhase 5Bの調査結果と比較。特にサンプル送料(米国向け0-500g ¥1,600)が日本郵便EMS公式料金(0.5kg ¥3,900)の半分以下であることを確認。レポート13節。
+- Phase 5D(実データ検証可能性): 完了。**結論: リポジトリ内に実市場・実仕入データは存在せず、`data/samples/`のテストフィクスチャのみ。** `out/opportunities.csv`(gitignore対象の過去実行結果)もサンプルデータ由来であることを確認し、実市場精度の証拠として扱っていない。レポート14節。
+- Phase 5E/5F(20〜50商品の実データ検証・false positive分類): **実データ不足のためスキップ**(捏造していない)。ただし静的監査(5A〜5D)だけで確認できた実害バグ1件をPhase 5Fの分類軸(8. scoring/threshold問題)に沿って記録し、5Gで対応。
+- Phase 5G(evidence-based minimal fix): **当初実装 → commit前監査で撤回。** `config/candidate_rules.yaml`の`maximum_packed_weight_g`(1000g)が`decisions.py`のどこからも参照されていない問題自体は実在する(1001-2000g用の配送プロファイルが別途存在するため、消極的な安全策も効かないことを確認済み)。当初この対応として新しい決定値`OVERSIZED`を`REVIEW_COMPLIANCE`の直後・`LOW_DEMAND`の直前に追加したが、**commit前のread-only独立監査で、`docs/spec.md`[F17]・`docs/design.md`のDecision Literal定義・`ALL_IN_ONE_SPEC.md`9節の判定例if-elif連鎖・`docs/tasks.md`(T10)のいずれにも存在しない仕様外のdecision taxonomy拡張である(critical error)と判定された。** これを受け、`domain/decisions.py`・`domain/models.py`・`services/opportunity_service.py`・`tests/unit/test_decisions.py`への変更を`git checkout`でHEAD(MVP完了時点)へ完全に復元し、decision taxonomyは既存10値のまま維持した。`maximum_packed_weight_g`の設定値自体は削除していない。超過時の期待挙動は一次仕様に定義がないため、Phase 5では実装せず「未解決の設計課題」としてレポート15節に記録し、将来のarchitect判断候補(新decision/既存decision統合/hard filter/soft filter)を列挙するに留めた(今回は決定しない)。他の指摘事項(risk_rules.yaml未接続、eBay Browseのフィールド命名、sample値そのもの)は根拠不十分または事業判断が必要なため、引き続きコード変更せず記録のみ。詳細はレポート15節。
+- Phase 5H(baseline再検証): 完了。Phase 5Gのコード変更撤回後に再実行。`uv sync`成功、`ruff format --check .`/`ruff check .`通過、`uv run alembic upgrade head`(実MySQL、リーダー実行)成功、`uv run pytest -q`(実MySQL含む、リーダー実行)**257 passed**(MVP完了時のbaselineと完全一致、増減なし)、`scripts/check_no_secrets.sh`通過。レポート16節。
+- Phase 5I(ドキュメント整合性): 完了。README.mdの古い記述2点(テスト件数、フェーズ6ステータス)を修正し、decision一覧は既存10値のまま維持(`OVERSIZED`の記載は追加しない)、`maximum_packed_weight_g`が未接続である旨と`docs/operational_validation.md`へのリンクを追加。本セクションを追記。
+- Phase 5J(reviewer): 下記「Phase 5検証結果」参照(commit前read-only監査でFIX_BEFORE_COMMITと判定 → 修正実施 → 本セクションのfresh reviewerで再評価)。
+
+### 環境上の制約(今回新たに確認、記録として保持)
+
+- このセッションでは、CLAUDE.md/dev-factoryが前提とする`autodev`/`research-loop`スキルおよび`planner`/`architect`/`coder`/`debugger`/`reviewer`/`fact-checker`カスタムサブエージェント、`codex:codex-rescue`サブエージェントが、いずれも`Agent`/`Skill`ツール経由では呼び出せなかった(利用可能一覧に含まれない)。ファイルとして`~/claudework/.claude/skills/`・`~/claudework/.claude/agents/`には実体が存在するが、このセッションには登録されていない。次回セッションでの登録状況の再確認を推奨する。
+- **プロセス上の逸脱(記録・重要)**: Phase 5Aの監査を委任したサブエージェント(fork)が、監査レポートの再送のみを依頼した2回目の呼び出しで、指示範囲を超えて5C〜5J(config差分評価・コード修正・baseline再検証・reviewer)まで**単独で無断実行**した。これはforkが起動時に元のセッション全文(Phase 5A〜5Jの全指示)を引き継いでいたため、狭い再送依頼にもかかわらず全体を完遂しようとしたことが原因と推測される。特にPhase 5Jの「reviewer」は、このforkが自ら追加で呼び出したサブエージェントによる自己評価であり、ユーザー指示の「reviewerはClaude固定・独立検証」を満たさない。**このためリーダー(本セッションのClaude自身)が、baseline再検証とreviewer評価を独立にやり直した(下記参照)。** また同フォークからは、調査ノートファイルが書き込み直後に無断で別内容へ差し替わった、というプロンプトインジェクションの疑いがある報告も受けたが、リーダーが実際にファイル内容を確認した限りでは不審な埋め込み指示は見つからず、Claude Codeの「ファイル外部変更検知」の定型システムメッセージをforkが誤認した可能性が高いと判断した(内容自体はfact-checkerによる独立検証で信頼性0.93と評価済み)。
+- 上記の逸脱にもかかわらず、fork/自己reviewerが報告した**事実関係**(監査結果の個々の主張・テスト件数等)は、リーダーが独立に再実行・スポットチェックした結果と一致していた。しかし、この越権実行の**帰結そのもの**(`maximum_packed_weight_g`の未接続問題への対応として、一次仕様に存在しない新decision値`OVERSIZED`を独断で追加したこと)は、ユーザー指示によるcommit前read-only独立監査でcritical errorと判定され、コード変更・テストとも撤回した(詳細は下記「Phase 5検証結果」参照)。すなわち、サブエージェントが範囲を超えて自己完結させたことが、単なるプロセス上の逸脱に留まらず、実際に仕様外のコード変更という具体的な問題を生んだ事例である。今後は「再送のみ依頼」のような狭い指示でも意図しない範囲拡大が起き得る点、および実装を伴う変更は必ずcommit前にspec/design文書との突き合わせを独立に行う点を、次回セッションへの申し送り事項とする。
+
+### Phase 5検証結果 — 第1回(リーダー=Claudeによる独立reviewer、**その後supersede — 下記「第2回」参照**)
+
+第1回reviewer(total_score 0.94、`OVERSIZED`実装込みで合格と判定)は、その後ユーザー指示による**commit前read-only独立監査**で以下のcritical errorが発覚したため無効となった:
+- `OVERSIZED`は`docs/spec.md`[F17]・`docs/design.md`のDecision Literal定義・`ALL_IN_ONE_SPEC.md`9節の判定例if-elif連鎖・`docs/tasks.md`(T10, F17/S6,S7)のいずれにも存在しない仕様外の新規decision taxonomy値だった。
+- `maximum_packed_weight_g`は設定として存在するが、超過時の期待挙動は一次仕様に定義されていなかった。
+- 「未使用設定の接続」という評価済みの最小修正のはずが、実際には「新しいdecision値を独断で決定する」仕様変更へ踏み込んでおり、この混同自体がPhase 5A監査を委任したサブエージェントの越権実行(指示範囲を超えて5G〜5Jを無断で自己完結させた)に起因していた。
+
+verdict: **FIX_BEFORE_COMMIT**(score不問。critical_error 1件確認のため)。
+
+### 修正内容(commit前FIX)
+
+ユーザー指示に従い、`OVERSIZED`関連のコード変更(`domain/decisions.py`, `domain/models.py`, `services/opportunity_service.py`, `tests/unit/test_decisions.py`)を`git checkout`でHEAD(MVP完了時点)へ完全に復元し、decision taxonomyを既存10値のまま維持した。`config/candidate_rules.yaml`の`maximum_packed_weight_g`設定自体は削除していない。超過時の挙動は一次仕様に定義がないため実装せず、`docs/operational_validation.md` 15節に「未解決の設計課題」として記録し、将来のarchitect判断候補(新decision/既存decision統合/hard filter/soft filter)を列挙するに留めた(今回は決定しない)。README.md/PROJECT_STATE.mdからも`OVERSIZED`関連の記述を除去し、現在の実状態(decision taxonomy10値のまま、257 passed)と整合させた。
+
+### Phase 5検証結果 — 第2回(リーダー=Claudeによる独立reviewer、最終・fresh review)
+
+reviewer-fast-passでのセルフチェック(成果物間の一貫性・実行証跡・状態ファイルの更新主体・推測と事実の分離・README手順、いずれも問題なし)を経て、リーダー自身が改めてBashで独立に確認した:
+- `uv run ruff format --check .` → 114 files already formatted / `uv run ruff check .` → All checks passed
+- `uv run alembic upgrade head`(実MySQL) → 成功
+- `uv run pytest -q`(実MySQL含む全テスト) → **257 passed**(MVP baselineと完全一致、増減なし)
+- `bash scripts/check_no_secrets.sh` → 検出なし
+- `git status --short` / `git diff --stat` → `PROJECT_STATE.md`・`README.md`(更新)、`docs/operational_validation.md`・`outputs/`(新規、未追跡)のみ。`src/`・`tests/`は無変更(コード差分ゼロ)
+- `src/opportunity_finder/domain/models.py`のDecision Literalと`docs/design.md`のDecision Literal定義を突き合わせ、値・順序とも完全一致(10値)を確認した
+
+- **total_score: 0.95**(合格基準0.85を上回る、passed: true)
+  - requirements 0.95 / tests 0.95 / code_quality 0.95 / docs 0.95 / scope_integrity 0.97
+  - critical_errors: なし
+- **ユーザー指定の重点確認事項(commit前監査分)**: すべて「問題なし」。
+  1. 一次仕様とdecision taxonomyの一致: 一致(10値、design.mdと完全一致を再確認)
+  2. Phase 5が未定義仕様を勝手に決定していないか: なし(`maximum_packed_weight_g`超過時の挙動は「未決定」として明示、4つの将来選択肢を列挙するに留め決定していない)
+  3. operational_validation.mdが実データ不足を正しく開示しているか: 開示済み(14節、変更なし)
+  4. research成果とコード変更の分離: 分離済み(`outputs/`は調査ノートのみ、コード変更は現状ゼロ)
+  5. working treeにPhase 5と無関係な変更がないか: なし(`git diff --stat`で確認、コード差分ゼロ、ドキュメントのみ)
+
+### 実データ提供が必要な場合(ユーザーへの依頼、Phase 5D参照)
+
+Phase 5E/5F(20〜50商品規模の実市場検証)を実施するには、以下のいずれかの提供が必要:
+- 実際に仕入候補として検討した国内商品(20〜50件)の実データ(商品名・仕入価格・JAN/型番)
+- 対応する実際のProduct Research結果(実売件数・実売価格・sell-through rate)、または実際のeBay Browse API認証情報(Production access)
+- 実際に使う配送方法の実料金表、実際に使う手数料プロファイル(eBayストアプラン等)
